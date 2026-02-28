@@ -80,13 +80,15 @@ export function AppSidebar({
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary">
-          <CreditCard className="h-5 w-5 text-sidebar-primary-foreground" />
-        </div>
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-sidebar-border">
+        <img
+          src="/assets/uploads/kakatiya-uniforms-logo-2--1.png"
+          alt="KAKATIYA ID CARDS Logo"
+          className="h-10 w-10 rounded-lg object-contain bg-white p-0.5 flex-shrink-0"
+        />
         <div>
-          <p className="font-display font-bold text-sidebar-foreground text-lg leading-tight">
-            ID Card Hub
+          <p className="font-display font-bold text-sidebar-foreground text-sm leading-tight">
+            KAKATIYA ID CARDS
           </p>
           <p className="text-xs text-sidebar-foreground/50 font-body">
             Manufacturing Manager

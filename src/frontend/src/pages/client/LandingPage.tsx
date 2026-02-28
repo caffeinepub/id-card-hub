@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import {
   Camera,
   CheckCircle,
-  CreditCard,
   GraduationCap,
   LogIn,
   Shield,
@@ -95,16 +94,18 @@ export function LandingPage() {
           >
             {/* Logo mark */}
             <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-5 py-2 mb-8">
-              <div className="h-7 w-7 rounded-lg bg-amber-400 flex items-center justify-center">
-                <CreditCard className="h-4 w-4 text-amber-900" />
-              </div>
+              <img
+                src="/assets/uploads/kakatiya-uniforms-logo-2--1.png"
+                alt="KAKATIYA ID CARDS"
+                className="h-8 w-8 rounded-lg object-contain bg-white p-0.5"
+              />
               <span className="text-white/90 font-medium text-sm tracking-wide">
-                ID Card Hub — Client Portal
+                KAKATIYA ID CARDS — Client Portal
               </span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold text-white leading-tight mb-6">
-              Professional ID Cards
+              KAKATIYA ID CARDS
               <br />
               <span className="text-amber-400">for Your Institution</span>
             </h1>
@@ -209,7 +210,7 @@ export function LandingPage() {
             Ready to Get Started?
           </h2>
           <p className="text-muted-foreground mb-8">
-            Join schools and colleges already using ID Card Hub for their
+            Join schools and colleges already using KAKATIYA ID CARDS for their
             identity card needs.
           </p>
           <Button
