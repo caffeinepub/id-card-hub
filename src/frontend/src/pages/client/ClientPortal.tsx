@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { CreditCard, LogOut, Menu, User, X } from "lucide-react";
+import { CreditCard, LogOut, Menu, User, Users, X } from "lucide-react";
 import { useState } from "react";
 import { useInternetIdentity } from "../../hooks/useInternetIdentity";
 import { useCallerUserProfile } from "../../hooks/useQueries";
@@ -10,12 +10,14 @@ import { ClientDashboard } from "./ClientDashboard";
 import { NewOrderForm } from "./NewOrderForm";
 import { OrderDetailPage } from "./OrderDetailPage";
 import { ProfileSetupModal } from "./ProfileSetupModal";
+import { ViewRecordsPage } from "./ViewRecordsPage";
 
 type ClientPage =
   | { type: "dashboard" }
   | { type: "new-order" }
   | { type: "order-detail"; orderId: bigint }
-  | { type: "add-students"; orderId: bigint };
+  | { type: "add-students"; orderId: bigint }
+  | { type: "view-records" };
 
 export function ClientPortal() {
   const { identity, clear } = useInternetIdentity();
@@ -87,6 +89,8 @@ export function ClientPortal() {
             }
           />
         );
+      case "view-records":
+        return <ViewRecordsPage />;
       default:
         return null;
     }
@@ -178,6 +182,22 @@ export function ClientPortal() {
                 >
                   <CreditCard className="h-5 w-5 text-sidebar-primary" />
                   My Orders
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                    currentPage.type === "view-records"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+                  )}
+                  onClick={() => {
+                    setCurrentPage({ type: "view-records" });
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Users className="h-5 w-5 text-sidebar-primary" />
+                  View Records
                 </button>
               </nav>
 
