@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Cabinet Grotesk - Display font */
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/assets/fonts/CabinetGrotesk-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+/* Satoshi - Body font */
+@font-face {
+  font-family: "Satoshi";
+  src: url("/assets/fonts/Satoshi-Variable.woff2") format("woff2");
+  font-weight: 300 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+
+    /* Background: near-white with warm undertone */
+    --background: 0.975 0.004 90;
+    --foreground: 0.17 0.02 260;
+
+    /* Card: pure white */
+    --card: 1 0 0;
+    --card-foreground: 0.17 0.02 260;
+
+    /* Popover */
+    --popover: 1 0 0;
+    --popover-foreground: 0.17 0.02 260;
+
+    /* Primary: deep navy */
+    --primary: 0.22 0.055 265;
+    --primary-foreground: 0.98 0 0;
+
+    /* Secondary: light slate */
+    --secondary: 0.93 0.012 250;
+    --secondary-foreground: 0.22 0.055 265;
+
+    /* Muted */
+    --muted: 0.93 0.012 250;
+    --muted-foreground: 0.52 0.025 260;
+
+    /* Accent: amber/gold */
+    --accent: 0.88 0.12 82;
+    --accent-foreground: 0.22 0.04 60;
+
+    /* Destructive */
+    --destructive: 0.58 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+
+    /* Borders */
+    --border: 0.88 0.012 250;
+    --input: 0.88 0.012 250;
+    --ring: 0.4 0.1 265;
+
+    /* Status colors */
+    --status-pending: 0.82 0.18 85;
+    --status-pending-bg: 0.97 0.04 85;
+    --status-production: 0.58 0.14 240;
+    --status-production-bg: 0.94 0.05 240;
+    --status-ready: 0.58 0.15 155;
+    --status-ready-bg: 0.93 0.06 155;
+    --status-delivered: 0.52 0.02 260;
+    --status-delivered-bg: 0.93 0.01 260;
+    --status-cancelled: 0.58 0.22 25;
+    --status-cancelled-bg: 0.96 0.04 25;
+
+    /* Chart colors */
+    --chart-1: 0.58 0.14 240;
+    --chart-2: 0.58 0.15 155;
+    --chart-3: 0.82 0.18 85;
+    --chart-4: 0.58 0.22 25;
+    --chart-5: 0.7 0.1 265;
+
+    /* Sidebar: deep navy */
+    --sidebar: 0.19 0.05 265;
+    --sidebar-foreground: 0.88 0.015 255;
+    --sidebar-primary: 0.82 0.14 82;
+    --sidebar-primary-foreground: 0.15 0.04 60;
+    --sidebar-accent: 0.28 0.06 265;
+    --sidebar-accent-foreground: 0.95 0.01 255;
+    --sidebar-border: 0.28 0.04 265;
+    --sidebar-ring: 0.4 0.1 265;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    font-feature-settings: "ss01", "ss02";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .status-pending {
+    background-color: oklch(var(--status-pending-bg));
+    color: oklch(var(--status-pending));
+    border-color: oklch(var(--status-pending) / 0.3);
+  }
+
+  .status-inProduction {
+    background-color: oklch(var(--status-production-bg));
+    color: oklch(var(--status-production));
+    border-color: oklch(var(--status-production) / 0.3);
+  }
+
+  .status-ready {
+    background-color: oklch(var(--status-ready-bg));
+    color: oklch(var(--status-ready));
+    border-color: oklch(var(--status-ready) / 0.3);
+  }
+
+  .status-delivered {
+    background-color: oklch(var(--status-delivered-bg));
+    color: oklch(var(--status-delivered));
+    border-color: oklch(var(--status-delivered) / 0.3);
+  }
+
+  .status-cancelled {
+    background-color: oklch(var(--status-cancelled-bg));
+    color: oklch(var(--status-cancelled));
+    border-color: oklch(var(--status-cancelled) / 0.3);
+  }
+
+  .sidebar-glow {
+    box-shadow: inset -1px 0 0 oklch(var(--sidebar-border));
+  }
+}
