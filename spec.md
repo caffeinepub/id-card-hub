@@ -1,38 +1,24 @@
-# ID Card Manufacturing Business App
+# ID Card Hub
 
 ## Current State
-New project. No existing code.
+
+The app has a client portal for schools/colleges to submit orders and an admin dashboard to manage them. The admin can upload a final ID card design image per order, and the client can view and download it. There is no messaging that clarifies the uploaded design applies to all students/staff in that order.
 
 ## Requested Changes (Diff)
 
 ### Add
-- **Order Management**: Create and track ID card orders with customer details, card type, quantity, status (pending, in-production, ready, delivered)
-- **Customer Management**: Store customer name, contact info, and order history
-- **Card Templates/Types**: Manage different ID card types (employee ID, student ID, access card, etc.) with pricing
-- **Dashboard**: Overview of active orders, revenue summary, orders by status
-- **Order Detail View**: View/edit individual order details, update status, add notes
-- **Sample Content**: Pre-populated card types and sample orders for demo purposes
+- On the admin side (AdminClientOrdersPage): A note below the "ID Card Design" section header stating how many people are in the order and that the design applies to all of them (e.g. "This design will be applied to all 45 students and staff in this order").
+- On the client side (OrderDetailPage): A note inside the "Your ID Card Design" card stating the design applies to all people in the order, showing the total count (e.g. "This design will be used for all 45 people in your order").
+- When no design has been uploaded yet, update the pending message on the client side to also mention it will apply to all their students and staff.
 
 ### Modify
-- None (new project)
+- AdminClientOrdersPage: Update the ID Card Design section to display the "applies to all X people" note, using the already-fetched `records` array to get the count.
+- OrderDetailPage: Update the Design Preview card to show the "applies to all X people" note, using the already-fetched `records` array.
 
 ### Remove
-- None (new project)
+- Nothing removed.
 
 ## Implementation Plan
-1. Backend:
-   - `CardType` record: id, name, description, price, turnaround days
-   - `Customer` record: id, name, email, phone, address, createdAt
-   - `Order` record: id, customerId, cardTypeId, quantity, status, totalPrice, notes, createdAt, updatedAt
-   - CRUD for CardTypes, Customers, Orders
-   - Query: get orders by status, get orders by customer, dashboard stats (counts by status, total revenue)
-   - Seed data: 3-4 card types, 5 customers, 8-10 sample orders
 
-2. Frontend:
-   - Navigation: Dashboard, Orders, Customers, Card Types
-   - Dashboard page: stats cards (total orders, pending, in-production, ready), recent orders list
-   - Orders page: list all orders with filters by status, button to create new order
-   - New/Edit Order form: select customer, card type, quantity, notes
-   - Order detail: view full order, status update dropdown, notes
-   - Customers page: list customers, add/edit customer form
-   - Card Types page: list and manage card type catalog
+1. In `AdminClientOrdersPage.tsx` (`OrderDetailPanel`): Below the "ID Card Design" section title, add a small info note: "This design applies to all {records.length} people in this order" -- visible both when a design is uploaded and when the upload prompt is shown.
+2. In `OrderDetailPage.tsx`: In the design card (both the "design uploaded" state and the "Design Pending" empty state), add a note showing the total people count: "This design will be used for all {records.length} students and staff in your order."

@@ -8,6 +8,30 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const _CaffeineStorageCreateCertificateResult = IDL.Record({
+  'method' : IDL.Text,
+  'blob_hash' : IDL.Text,
+});
+export const _CaffeineStorageRefillInformation = IDL.Record({
+  'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+});
+export const _CaffeineStorageRefillResult = IDL.Record({
+  'success' : IDL.Opt(IDL.Bool),
+  'topped_up_amount' : IDL.Opt(IDL.Nat),
+});
+export const PersonRole = IDL.Variant({
+  'staff' : IDL.Null,
+  'student' : IDL.Null,
+});
+export const StudentRecord = IDL.Record({
+  'id' : IDL.Nat,
+  'role' : PersonRole,
+  'photoKey' : IDL.Opt(IDL.Text),
+  'personName' : IDL.Text,
+  'orderId' : IDL.Nat,
+  'department' : IDL.Text,
+  'uploadedAt' : IDL.Int,
+});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -19,6 +43,32 @@ export const CardType = IDL.Record({
   'name' : IDL.Text,
   'pricePerCard' : IDL.Float64,
   'description' : IDL.Text,
+});
+export const OrderStatus = IDL.Variant({
+  'submitted' : IDL.Null,
+  'printing' : IDL.Null,
+  'designing' : IDL.Null,
+  'dispatched' : IDL.Null,
+  'inReview' : IDL.Null,
+  'delivered' : IDL.Null,
+});
+export const ClientOrder = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : OrderStatus,
+  'deliveryAddress' : IDL.Text,
+  'cardLayoutChoice' : IDL.Text,
+  'institutionName' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'contactPerson' : IDL.Text,
+  'designImageKey' : IDL.Opt(IDL.Text),
+  'canEdit' : IDL.Bool,
+  'schoolLogoKey' : IDL.Opt(IDL.Text),
+  'clientPrincipal' : IDL.Principal,
+  'updatedAt' : IDL.Int,
+  'colorPreferences' : IDL.Text,
+  'contactEmail' : IDL.Text,
+  'cardQuantity' : IDL.Nat,
+  'contactPhone' : IDL.Text,
 });
 export const Customer = IDL.Record({
   'id' : IDL.Nat,
@@ -39,6 +89,7 @@ export const Order = IDL.Record({
   'customerId' : IDL.Nat,
   'totalPrice' : IDL.Float64,
 });
+export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 export const DashboardStats = IDL.Record({
   'cancelledOrders' : IDL.Nat,
@@ -51,41 +102,115 @@ export const DashboardStats = IDL.Record({
 });
 
 export const idlService = IDL.Service({
+  '_caffeineStorageBlobIsLive' : IDL.Func(
+      [IDL.Vec(IDL.Nat8)],
+      [IDL.Bool],
+      ['query'],
+    ),
+  '_caffeineStorageBlobsToDelete' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      ['query'],
+    ),
+  '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      [],
+      [],
+    ),
+  '_caffeineStorageCreateCertificate' : IDL.Func(
+      [IDL.Text],
+      [_CaffeineStorageCreateCertificateResult],
+      [],
+    ),
+  '_caffeineStorageRefillCashier' : IDL.Func(
+      [IDL.Opt(_CaffeineStorageRefillInformation)],
+      [_CaffeineStorageRefillResult],
+      [],
+    ),
+  '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addStudentRecord' : IDL.Func([StudentRecord], [IDL.Nat], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'bulkAddStudentRecords' : IDL.Func(
+      [IDL.Nat, IDL.Vec(StudentRecord)],
+      [IDL.Nat],
+      [],
+    ),
   'createCardType' : IDL.Func([CardType], [IDL.Nat], []),
+  'createClientOrder' : IDL.Func([ClientOrder], [IDL.Nat], []),
   'createCustomer' : IDL.Func([Customer], [IDL.Nat], []),
   'createOrder' : IDL.Func([Order], [IDL.Nat], []),
   'deleteCardType' : IDL.Func([IDL.Nat], [], []),
   'deleteCustomer' : IDL.Func([IDL.Nat], [], []),
+  'deleteFile' : IDL.Func([IDL.Text], [], []),
   'deleteOrder' : IDL.Func([IDL.Nat], [], []),
+  'deleteStudentRecord' : IDL.Func([IDL.Nat], [], []),
   'getAllCardTypes' : IDL.Func([], [IDL.Vec(CardType)], ['query']),
+  'getAllClientOrders' : IDL.Func([], [IDL.Vec(ClientOrder)], ['query']),
   'getAllCustomers' : IDL.Func([], [IDL.Vec(Customer)], ['query']),
+  'getAllFiles' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Text, ExternalBlob))],
+      [],
+    ),
   'getAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCardType' : IDL.Func([IDL.Nat], [IDL.Opt(CardType)], ['query']),
+  'getClientOrder' : IDL.Func([IDL.Nat], [IDL.Opt(ClientOrder)], ['query']),
   'getCustomer' : IDL.Func([IDL.Nat], [IDL.Opt(Customer)], ['query']),
   'getDashboardStats' : IDL.Func([], [DashboardStats], ['query']),
+  'getMyClientOrders' : IDL.Func([], [IDL.Vec(ClientOrder)], ['query']),
   'getOrder' : IDL.Func([IDL.Nat], [IDL.Opt(Order)], ['query']),
   'getOrdersByCustomerId' : IDL.Func([IDL.Nat], [IDL.Vec(Order)], ['query']),
   'getOrdersByStatus' : IDL.Func([IDL.Text], [IDL.Vec(Order)], ['query']),
+  'getStudentRecordsByOrder' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(StudentRecord)],
+      ['query'],
+    ),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
-  'initializeSeedData' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'removeClientOrderDesign' : IDL.Func([IDL.Nat], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'setClientOrderEditPermission' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
   'updateCardType' : IDL.Func([IDL.Nat, CardType], [], []),
+  'updateClientOrder' : IDL.Func([IDL.Nat, ClientOrder], [], []),
+  'updateClientOrderStatus' : IDL.Func([IDL.Nat, OrderStatus], [], []),
   'updateCustomer' : IDL.Func([IDL.Nat, Customer], [], []),
   'updateOrder' : IDL.Func([IDL.Nat, Order], [], []),
+  'uploadClientOrderDesign' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+  'uploadFile' : IDL.Func([IDL.Text, ExternalBlob], [], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const _CaffeineStorageCreateCertificateResult = IDL.Record({
+    'method' : IDL.Text,
+    'blob_hash' : IDL.Text,
+  });
+  const _CaffeineStorageRefillInformation = IDL.Record({
+    'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+  });
+  const _CaffeineStorageRefillResult = IDL.Record({
+    'success' : IDL.Opt(IDL.Bool),
+    'topped_up_amount' : IDL.Opt(IDL.Nat),
+  });
+  const PersonRole = IDL.Variant({ 'staff' : IDL.Null, 'student' : IDL.Null });
+  const StudentRecord = IDL.Record({
+    'id' : IDL.Nat,
+    'role' : PersonRole,
+    'photoKey' : IDL.Opt(IDL.Text),
+    'personName' : IDL.Text,
+    'orderId' : IDL.Nat,
+    'department' : IDL.Text,
+    'uploadedAt' : IDL.Int,
+  });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -97,6 +222,32 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'pricePerCard' : IDL.Float64,
     'description' : IDL.Text,
+  });
+  const OrderStatus = IDL.Variant({
+    'submitted' : IDL.Null,
+    'printing' : IDL.Null,
+    'designing' : IDL.Null,
+    'dispatched' : IDL.Null,
+    'inReview' : IDL.Null,
+    'delivered' : IDL.Null,
+  });
+  const ClientOrder = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : OrderStatus,
+    'deliveryAddress' : IDL.Text,
+    'cardLayoutChoice' : IDL.Text,
+    'institutionName' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'contactPerson' : IDL.Text,
+    'designImageKey' : IDL.Opt(IDL.Text),
+    'canEdit' : IDL.Bool,
+    'schoolLogoKey' : IDL.Opt(IDL.Text),
+    'clientPrincipal' : IDL.Principal,
+    'updatedAt' : IDL.Int,
+    'colorPreferences' : IDL.Text,
+    'contactEmail' : IDL.Text,
+    'cardQuantity' : IDL.Nat,
+    'contactPhone' : IDL.Text,
   });
   const Customer = IDL.Record({
     'id' : IDL.Nat,
@@ -117,6 +268,7 @@ export const idlFactory = ({ IDL }) => {
     'customerId' : IDL.Nat,
     'totalPrice' : IDL.Float64,
   });
+  const ExternalBlob = IDL.Vec(IDL.Nat8);
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
   const DashboardStats = IDL.Record({
     'cancelledOrders' : IDL.Nat,
@@ -129,36 +281,89 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
+    '_caffeineStorageBlobIsLive' : IDL.Func(
+        [IDL.Vec(IDL.Nat8)],
+        [IDL.Bool],
+        ['query'],
+      ),
+    '_caffeineStorageBlobsToDelete' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        ['query'],
+      ),
+    '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        [],
+        [],
+      ),
+    '_caffeineStorageCreateCertificate' : IDL.Func(
+        [IDL.Text],
+        [_CaffeineStorageCreateCertificateResult],
+        [],
+      ),
+    '_caffeineStorageRefillCashier' : IDL.Func(
+        [IDL.Opt(_CaffeineStorageRefillInformation)],
+        [_CaffeineStorageRefillResult],
+        [],
+      ),
+    '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addStudentRecord' : IDL.Func([StudentRecord], [IDL.Nat], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'bulkAddStudentRecords' : IDL.Func(
+        [IDL.Nat, IDL.Vec(StudentRecord)],
+        [IDL.Nat],
+        [],
+      ),
     'createCardType' : IDL.Func([CardType], [IDL.Nat], []),
+    'createClientOrder' : IDL.Func([ClientOrder], [IDL.Nat], []),
     'createCustomer' : IDL.Func([Customer], [IDL.Nat], []),
     'createOrder' : IDL.Func([Order], [IDL.Nat], []),
     'deleteCardType' : IDL.Func([IDL.Nat], [], []),
     'deleteCustomer' : IDL.Func([IDL.Nat], [], []),
+    'deleteFile' : IDL.Func([IDL.Text], [], []),
     'deleteOrder' : IDL.Func([IDL.Nat], [], []),
+    'deleteStudentRecord' : IDL.Func([IDL.Nat], [], []),
     'getAllCardTypes' : IDL.Func([], [IDL.Vec(CardType)], ['query']),
+    'getAllClientOrders' : IDL.Func([], [IDL.Vec(ClientOrder)], ['query']),
     'getAllCustomers' : IDL.Func([], [IDL.Vec(Customer)], ['query']),
+    'getAllFiles' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Text, ExternalBlob))],
+        [],
+      ),
     'getAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCardType' : IDL.Func([IDL.Nat], [IDL.Opt(CardType)], ['query']),
+    'getClientOrder' : IDL.Func([IDL.Nat], [IDL.Opt(ClientOrder)], ['query']),
     'getCustomer' : IDL.Func([IDL.Nat], [IDL.Opt(Customer)], ['query']),
     'getDashboardStats' : IDL.Func([], [DashboardStats], ['query']),
+    'getMyClientOrders' : IDL.Func([], [IDL.Vec(ClientOrder)], ['query']),
     'getOrder' : IDL.Func([IDL.Nat], [IDL.Opt(Order)], ['query']),
     'getOrdersByCustomerId' : IDL.Func([IDL.Nat], [IDL.Vec(Order)], ['query']),
     'getOrdersByStatus' : IDL.Func([IDL.Text], [IDL.Vec(Order)], ['query']),
+    'getStudentRecordsByOrder' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(StudentRecord)],
+        ['query'],
+      ),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
-    'initializeSeedData' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'removeClientOrderDesign' : IDL.Func([IDL.Nat], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'setClientOrderEditPermission' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
     'updateCardType' : IDL.Func([IDL.Nat, CardType], [], []),
+    'updateClientOrder' : IDL.Func([IDL.Nat, ClientOrder], [], []),
+    'updateClientOrderStatus' : IDL.Func([IDL.Nat, OrderStatus], [], []),
     'updateCustomer' : IDL.Func([IDL.Nat, Customer], [], []),
     'updateOrder' : IDL.Func([IDL.Nat, Order], [], []),
+    'uploadClientOrderDesign' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+    'uploadFile' : IDL.Func([IDL.Text, ExternalBlob], [], []),
   });
 };
 

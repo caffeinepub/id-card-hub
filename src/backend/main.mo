@@ -1,26 +1,23 @@
-import List "mo:core/List";
 import Map "mo:core/Map";
+import Nat "mo:core/Nat";
 import Time "mo:core/Time";
-import Order "mo:core/Order";
-import Array "mo:core/Array";
-import Iter "mo:core/Iter";
+import Text "mo:core/Text";
 import Int "mo:core/Int";
 import Float "mo:core/Float";
-import Text "mo:core/Text";
-import Nat "mo:core/Nat";
-import Runtime "mo:core/Runtime";
-import Debug "mo:core/Debug";
 import Principal "mo:core/Principal";
+import Iter "mo:core/Iter";
+import Runtime "mo:core/Runtime";
+import Array "mo:core/Array";
+
 import MixinAuthorization "authorization/MixinAuthorization";
+import Order "mo:core/Order";
+import MixinStorage "blob-storage/Mixin";
+import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
 
-actor {
-  module CardType {
-    public func compareByPrice(cardType1 : CardType, cardType2 : CardType) : Order.Order {
-      Float.compare(cardType1.pricePerCard, cardType2.pricePerCard);
-    };
-  };
 
+
+actor {
   type CardType = {
     id : Nat;
     name : Text;
@@ -39,12 +36,6 @@ actor {
     notes : Text;
     createdAt : Int;
     updatedAt : Int;
-  };
-
-  module OrderUtils {
-    public func compareByTotalPrice(order1 : Order, order2 : Order) : Order.Order {
-      Float.compare(order1.totalPrice, order2.totalPrice);
-    };
   };
 
   type Customer = {
@@ -66,12 +57,72 @@ actor {
     totalRevenue : Float;
   };
 
-  public type UserProfile = {
+  type UserProfile = {
     name : Text;
+  };
+
+  type ClientOrder = {
+    id : Nat;
+    clientPrincipal : Principal;
+    institutionName : Text;
+    contactPerson : Text;
+    contactPhone : Text;
+    contactEmail : Text;
+    deliveryAddress : Text;
+    cardQuantity : Nat;
+    cardLayoutChoice : Text;
+    colorPreferences : Text;
+    schoolLogoKey : ?Text;
+    designImageKey : ?Text;
+    status : OrderStatus;
+    canEdit : Bool;
+    createdAt : Int;
+    updatedAt : Int;
+  };
+
+  type OrderStatus = {
+    #submitted;
+    #inReview;
+    #designing;
+    #printing;
+    #dispatched;
+    #delivered;
+  };
+
+  type StudentRecord = {
+    id : Nat;
+    orderId : Nat;
+    personName : Text;
+    role : PersonRole;
+    department : Text;
+    photoKey : ?Text;
+    uploadedAt : Int;
+  };
+
+  type PersonRole = {
+    #student;
+    #staff;
+  };
+
+  module CardTypeOrder {
+    public func compare(cardType1 : CardType, cardType2 : CardType) : Order.Order {
+      Float.compare(cardType1.pricePerCard, cardType2.pricePerCard);
+    };
+  };
+
+  module OrderUtils {
+    public func compare(order1 : Order, order2 : Order) : Order.Order {
+      Float.compare(order1.totalPrice, order2.totalPrice);
+    };
   };
 
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+
+  include MixinStorage();
+
+  let cardTypes = Map.empty<Nat, CardType>();
+  var nextCardTypeId = 1;
 
   let orders = Map.empty<Nat, Order>();
   var nextOrderId = 1;
@@ -79,10 +130,51 @@ actor {
   let customers = Map.empty<Nat, Customer>();
   var nextCustomerId = 1;
 
-  let cardTypes = Map.empty<Nat, CardType>();
-  var nextCardTypeId = 1;
+  var files = Map.empty<Text, Storage.ExternalBlob>();
+
+  let clientOrders = Map.empty<Nat, ClientOrder>();
+  var nextClientOrderId = 1;
+
+  let studentRecords = Map.empty<Nat, StudentRecord>();
+  var nextStudentRecordId = 1;
 
   let userProfiles = Map.empty<Principal, UserProfile>();
+
+  public shared ({ caller }) func uploadClientOrderDesign(orderId : Nat, designImageKey : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admin can upload designs");
+    };
+
+    switch (clientOrders.get(orderId)) {
+      case (null) { Runtime.trap("Client order not found") };
+      case (?order) {
+        let updatedOrder = {
+          order with
+          designImageKey = ?designImageKey;
+          updatedAt = Time.now();
+        };
+        clientOrders.add(orderId, updatedOrder);
+      };
+    };
+  };
+
+  public shared ({ caller }) func removeClientOrderDesign(orderId : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admin can remove designs");
+    };
+
+    switch (clientOrders.get(orderId)) {
+      case (null) { Runtime.trap("Client order not found") };
+      case (?order) {
+        let updatedOrder = {
+          order with
+          designImageKey = null;
+          updatedAt = Time.now();
+        };
+        clientOrders.add(orderId, updatedOrder);
+      };
+    };
+  };
 
   // User Profile Management
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -104,225 +196,6 @@ actor {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
-  };
-
-  // Setup seed data
-  public shared ({ caller }) func initializeSeedData() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admin can initialize seed data");
-    };
-
-    initializeSeedCardTypes();
-    initializeSeedCustomers();
-    initializeSeedOrders();
-  };
-
-  func initializeSeedCardTypes() {
-    let cardTypesData : [CardType] = [
-      {
-        id = nextCardTypeId;
-        name = "Standard Plastic ID";
-        description = "Durable PVC card, long-lasting color print, waterproof, scratch resistant";
-        pricePerCard = 1.5;
-        turnaroundDays = 3;
-      },
-      {
-        id = nextCardTypeId + 1;
-        name = "Premium Laminated Card";
-        description = "High-quality laminated finish, long-lasting, waterproof";
-        pricePerCard = 2.5;
-        turnaroundDays = 5;
-      },
-      {
-        id = nextCardTypeId + 2;
-        name = "Magnetic Strip Card";
-        description = "Includes magnetic strip for access control, vinyl card, waterproof";
-        pricePerCard = 3.0;
-        turnaroundDays = 4;
-      },
-      {
-        id = nextCardTypeId + 3;
-        name = "Holographic Security ID";
-        description = "Anti-counterfeit holographic overlay, high security, waterproof, scratch resistant";
-        pricePerCard = 5.0;
-        turnaroundDays = 7;
-      },
-    ];
-
-    nextCardTypeId += cardTypesData.size();
-    for (cardType in cardTypesData.values()) {
-      cardTypes.add(cardType.id, cardType);
-    };
-  };
-
-  func initializeSeedCustomers() {
-    let customersData : [Customer] = [
-      {
-        id = nextCustomerId;
-        name = "Acme Corporation";
-        email = "contact@acmecorp.com";
-        phone = "+1 (555) 123-4567";
-        address = "123 Main St, New York, NY";
-        createdAt = Time.now();
-      },
-      {
-        id = nextCustomerId + 1;
-        name = "Smith Technology";
-        email = "info@smithtech.com";
-        phone = "+1 (555) 987-6543";
-        address = "456 Elm Ave, Los Angeles, CA";
-        createdAt = Time.now();
-      },
-      {
-        id = nextCustomerId + 2;
-        name = "Green Valley School";
-        email = "admin@greenschool.edu";
-        phone = "+1 (555) 789-1234";
-        address = "789 Oak St, Austin, TX";
-        createdAt = Time.now();
-      },
-      {
-        id = nextCustomerId + 3;
-        name = "Healthcare Solutions";
-        email = "support@healthcare.com";
-        phone = "+1 (555) 234-5678";
-        address = "321 Pine Rd, Chicago, IL";
-        createdAt = Time.now();
-      },
-      {
-        id = nextCustomerId + 4;
-        name = "Johnson Law Firm";
-        email = "johnsonlawfirm@gmail.com";
-        phone = "+1 (555) 345-6789";
-        address = "987 Maple Dr, Houston, TX";
-        createdAt = Time.now();
-      },
-    ];
-
-    nextCustomerId += customersData.size();
-    for (customer in customersData.values()) {
-      customers.add(customer.id, customer);
-    };
-  };
-
-  func initializeSeedOrders() {
-    let ordersData : [Order] = [
-      {
-        id = nextOrderId;
-        customerId = 2;
-        cardTypeId = 1;
-        quantity = 100;
-        status = "pending";
-        totalPrice = 150.0;
-        notes = "Urgent";
-        createdAt = Time.now();
-        updatedAt = Time.now();
-      },
-      {
-        id = nextOrderId + 1;
-        customerId = 3;
-        cardTypeId = 2;
-        quantity = 50;
-        status = "inProduction";
-        totalPrice = 125.0;
-        notes = "";
-        createdAt = Time.now();
-        updatedAt = Time.now();
-      },
-      {
-        id = nextOrderId + 2;
-        customerId = 1;
-        cardTypeId = 3;
-        quantity = 25;
-        status = "ready";
-        totalPrice = 75.0;
-        notes = "Include card holders";
-        createdAt = Time.now();
-        updatedAt = Time.now();
-      },
-      {
-        id = nextOrderId + 3;
-        customerId = 5;
-        cardTypeId = 4;
-        quantity = 10;
-        status = "delivered";
-        totalPrice = 50.0;
-        notes = "";
-        createdAt = Time.now();
-        updatedAt = Time.now();
-      },
-      {
-        id = nextOrderId + 4;
-        customerId = 2;
-        cardTypeId = 2;
-        quantity = 75;
-        status = "ready";
-        totalPrice = 187.5;
-        notes = "Expedited shipping";
-        createdAt = Time.now();
-        updatedAt = Time.now();
-      },
-      {
-        id = nextOrderId + 5;
-        customerId = 4;
-        cardTypeId = 4;
-        quantity = 5;
-        status = "cancelled";
-        totalPrice = 25.0;
-        notes = "Customer changed order";
-        createdAt = Time.now();
-        updatedAt = Time.now();
-      },
-      {
-        id = nextOrderId + 6;
-        customerId = 3;
-        cardTypeId = 1;
-        quantity = 200;
-        status = "delivered";
-        totalPrice = 300.0;
-        notes = "Include lanyards";
-        createdAt = Time.now();
-        updatedAt = Time.now();
-      },
-      {
-        id = nextOrderId + 7;
-        customerId = 1;
-        cardTypeId = 3;
-        quantity = 40;
-        status = "inProduction";
-        totalPrice = 120.0;
-        notes = "Special design";
-        createdAt = Time.now();
-        updatedAt = Time.now();
-      },
-      {
-        id = nextOrderId + 8;
-        customerId = 5;
-        cardTypeId = 2;
-        quantity = 65;
-        status = "pending";
-        totalPrice = 162.5;
-        notes = "";
-        createdAt = Time.now();
-        updatedAt = Time.now();
-      },
-      {
-        id = nextOrderId + 9;
-        customerId = 4;
-        cardTypeId = 2;
-        quantity = 80;
-        status = "pending";
-        totalPrice = 200.0;
-        notes = "Customer needs before next week";
-        createdAt = Time.now();
-        updatedAt = Time.now();
-      },
-    ];
-
-    nextOrderId += ordersData.size();
-    for (order in ordersData.values()) {
-      orders.add(order.id, order);
-    };
   };
 
   // CARD TYPES CRUD
@@ -373,7 +246,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view card types");
     };
-    cardTypes.values().toArray().sort(CardType.compareByPrice);
+    cardTypes.values().toArray().sort();
   };
 
   // CUSTOMERS CRUD
@@ -465,9 +338,7 @@ actor {
     };
     switch (orders.get(id)) {
       case (null) { Runtime.trap("Order not found") };
-      case (_) {
-        orders.remove(id);
-      };
+      case (_) { orders.remove(id) };
     };
   };
 
@@ -475,7 +346,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view orders");
     };
-    orders.values().toArray().sort(OrderUtils.compareByTotalPrice);
+    orders.values().toArray().sort();
   };
 
   public query ({ caller }) func getOrdersByStatus(status : Text) : async [Order] {
@@ -533,5 +404,244 @@ actor {
       cancelledOrders;
       totalRevenue;
     };
+  };
+
+  // CLIENT ORDERS - Features
+  public shared ({ caller }) func createClientOrder(clientOrder : ClientOrder) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can submit client orders");
+    };
+
+    let id = nextClientOrderId;
+    nextClientOrderId += 1;
+
+    let newClientOrder = {
+      clientOrder with
+      id;
+      clientPrincipal = caller;
+      status = #submitted;
+      canEdit = false;
+      createdAt = Time.now();
+      updatedAt = Time.now();
+    };
+
+    clientOrders.add(id, newClientOrder);
+    id;
+  };
+
+  public query ({ caller }) func getMyClientOrders() : async [ClientOrder] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can view orders");
+    };
+
+    clientOrders.values().toArray().filter(
+      func(order) { order.clientPrincipal == caller }
+    );
+  };
+
+  public query ({ caller }) func getClientOrder(id : Nat) : async ?ClientOrder {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can view client orders");
+    };
+
+    switch (clientOrders.get(id)) {
+      case (null) { null };
+      case (?order) {
+        if (order.clientPrincipal == caller or AccessControl.isAdmin(accessControlState, caller)) {
+          ?order;
+        } else {
+          null;
+        };
+      };
+    };
+  };
+
+  public query ({ caller }) func getAllClientOrders() : async [ClientOrder] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admin can view all client orders");
+    };
+    clientOrders.values().toArray();
+  };
+
+  public shared ({ caller }) func updateClientOrderStatus(id : Nat, status : OrderStatus) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admin can update order status");
+    };
+
+    switch (clientOrders.get(id)) {
+      case (null) { Runtime.trap("Client order not found") };
+      case (?order) {
+        let updatedOrder = {
+          order with
+          status;
+          updatedAt = Time.now();
+        };
+        clientOrders.add(id, updatedOrder);
+      };
+    };
+  };
+
+  public shared ({ caller }) func setClientOrderEditPermission(id : Nat, canEdit : Bool) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admin can update edit permissions");
+    };
+
+    switch (clientOrders.get(id)) {
+      case (null) { Runtime.trap("Client order not found") };
+      case (?order) {
+        let updatedOrder = {
+          order with
+          canEdit;
+          updatedAt = Time.now();
+        };
+        clientOrders.add(id, updatedOrder);
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateClientOrder(id : Nat, updatedOrder : ClientOrder) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can update orders");
+    };
+
+    switch (clientOrders.get(id)) {
+      case (null) { Runtime.trap("Client order not found") };
+      case (?order) {
+        if (caller != order.clientPrincipal) {
+          Runtime.trap("Unauthorized: Only order owner can update order");
+        };
+
+        if (not order.canEdit) {
+          Runtime.trap("Unauthorized: Order is not currently editable by client");
+        };
+
+        let finalUpdatedOrder = {
+          updatedOrder with
+          id = order.id;
+          clientPrincipal = order.clientPrincipal;
+          status = #submitted;
+          createdAt = order.createdAt;
+          updatedAt = Time.now();
+          canEdit = false;
+        };
+        clientOrders.add(id, finalUpdatedOrder);
+      };
+    };
+  };
+
+  // STUDENT/STAFF RECORDS - New Features
+  public shared ({ caller }) func addStudentRecord(record : StudentRecord) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can add student records");
+    };
+
+    let order = switch (clientOrders.get(record.orderId)) {
+      case (null) { Runtime.trap("Client order not found") };
+      case (?o) { o };
+    };
+
+    if (order.clientPrincipal != caller and not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: You do not have access to this order");
+    };
+
+    let id = nextStudentRecordId;
+    nextStudentRecordId += 1;
+
+    let newRecord = {
+      record with
+      id; uploadedAt = Time.now();
+    };
+    studentRecords.add(id, newRecord);
+    id;
+  };
+
+  public shared ({ caller }) func bulkAddStudentRecords(orderId : Nat, records : [StudentRecord]) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can add student records");
+    };
+
+    let order = switch (clientOrders.get(orderId)) {
+      case (null) { Runtime.trap("Client order not found") };
+      case (?o) { o };
+    };
+
+    if (order.clientPrincipal != caller and not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: You do not have access to this order");
+    };
+
+    var addedCount = 0;
+    for (record in records.values()) {
+      let id = nextStudentRecordId;
+      nextStudentRecordId += 1;
+
+      let newRecord = {
+        record with
+        id; orderId; uploadedAt = Time.now();
+      };
+      studentRecords.add(id, newRecord);
+      addedCount += 1;
+    };
+    addedCount;
+  };
+
+  public query ({ caller }) func getStudentRecordsByOrder(orderId : Nat) : async [StudentRecord] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can view student records");
+    };
+
+    let order = switch (clientOrders.get(orderId)) {
+      case (null) { Runtime.trap("Client order not found") };
+      case (?o) { o };
+    };
+
+    if (order.clientPrincipal != caller and not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: You do not have access to this order");
+    };
+
+    studentRecords.values().toArray().filter(
+      func(record) { record.orderId == orderId }
+    );
+  };
+
+  public shared ({ caller }) func deleteStudentRecord(id : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can delete student records");
+    };
+
+    switch (studentRecords.get(id)) {
+      case (null) { Runtime.trap("Student record not found") };
+      case (?record) {
+        let order = switch (clientOrders.get(record.orderId)) {
+          case (null) { Runtime.trap("Client order not found") };
+          case (?o) { o };
+        };
+
+        if (order.clientPrincipal != caller and not (AccessControl.isAdmin(accessControlState, caller))) {
+          Runtime.trap("Unauthorized: You do not have access to this order");
+        };
+
+        studentRecords.remove(id);
+      };
+    };
+  };
+
+  public shared ({ caller }) func uploadFile(id : Text, externalBlob : Storage.ExternalBlob) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can upload files");
+    };
+    files.add(id, externalBlob);
+  };
+
+  public shared ({ caller }) func deleteFile(id : Text) : async () {
+    switch (files.get(id)) {
+      case (null) { Runtime.trap("File with id does not exist: " # id) };
+      case (_) {
+        files.remove(id);
+      };
+    };
+  };
+
+  public shared ({ caller }) func getAllFiles() : async [(Text, Storage.ExternalBlob)] {
+    files.toArray();
   };
 };

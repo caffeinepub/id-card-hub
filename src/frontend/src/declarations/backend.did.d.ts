@@ -17,6 +17,24 @@ export interface CardType {
   'pricePerCard' : number,
   'description' : string,
 }
+export interface ClientOrder {
+  'id' : bigint,
+  'status' : OrderStatus,
+  'deliveryAddress' : string,
+  'cardLayoutChoice' : string,
+  'institutionName' : string,
+  'createdAt' : bigint,
+  'contactPerson' : string,
+  'designImageKey' : [] | [string],
+  'canEdit' : boolean,
+  'schoolLogoKey' : [] | [string],
+  'clientPrincipal' : Principal,
+  'updatedAt' : bigint,
+  'colorPreferences' : string,
+  'contactEmail' : string,
+  'cardQuantity' : bigint,
+  'contactPhone' : string,
+}
 export interface Customer {
   'id' : bigint,
   'name' : string,
@@ -34,6 +52,7 @@ export interface DashboardStats {
   'totalRevenue' : number,
   'deliveredOrders' : bigint,
 }
+export type ExternalBlob = Uint8Array;
 export interface Order {
   'id' : bigint,
   'status' : string,
@@ -45,37 +64,95 @@ export interface Order {
   'customerId' : bigint,
   'totalPrice' : number,
 }
+export type OrderStatus = { 'submitted' : null } |
+  { 'printing' : null } |
+  { 'designing' : null } |
+  { 'dispatched' : null } |
+  { 'inReview' : null } |
+  { 'delivered' : null };
+export type PersonRole = { 'staff' : null } |
+  { 'student' : null };
+export interface StudentRecord {
+  'id' : bigint,
+  'role' : PersonRole,
+  'photoKey' : [] | [string],
+  'personName' : string,
+  'orderId' : bigint,
+  'department' : string,
+  'uploadedAt' : bigint,
+}
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
+export interface _CaffeineStorageCreateCertificateResult {
+  'method' : string,
+  'blob_hash' : string,
+}
+export interface _CaffeineStorageRefillInformation {
+  'proposed_top_up_amount' : [] | [bigint],
+}
+export interface _CaffeineStorageRefillResult {
+  'success' : [] | [boolean],
+  'topped_up_amount' : [] | [bigint],
+}
 export interface _SERVICE {
+  '_caffeineStorageBlobIsLive' : ActorMethod<[Uint8Array], boolean>,
+  '_caffeineStorageBlobsToDelete' : ActorMethod<[], Array<Uint8Array>>,
+  '_caffeineStorageConfirmBlobDeletion' : ActorMethod<
+    [Array<Uint8Array>],
+    undefined
+  >,
+  '_caffeineStorageCreateCertificate' : ActorMethod<
+    [string],
+    _CaffeineStorageCreateCertificateResult
+  >,
+  '_caffeineStorageRefillCashier' : ActorMethod<
+    [[] | [_CaffeineStorageRefillInformation]],
+    _CaffeineStorageRefillResult
+  >,
+  '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addStudentRecord' : ActorMethod<[StudentRecord], bigint>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'bulkAddStudentRecords' : ActorMethod<[bigint, Array<StudentRecord>], bigint>,
   'createCardType' : ActorMethod<[CardType], bigint>,
+  'createClientOrder' : ActorMethod<[ClientOrder], bigint>,
   'createCustomer' : ActorMethod<[Customer], bigint>,
   'createOrder' : ActorMethod<[Order], bigint>,
   'deleteCardType' : ActorMethod<[bigint], undefined>,
   'deleteCustomer' : ActorMethod<[bigint], undefined>,
+  'deleteFile' : ActorMethod<[string], undefined>,
   'deleteOrder' : ActorMethod<[bigint], undefined>,
+  'deleteStudentRecord' : ActorMethod<[bigint], undefined>,
   'getAllCardTypes' : ActorMethod<[], Array<CardType>>,
+  'getAllClientOrders' : ActorMethod<[], Array<ClientOrder>>,
   'getAllCustomers' : ActorMethod<[], Array<Customer>>,
+  'getAllFiles' : ActorMethod<[], Array<[string, ExternalBlob]>>,
   'getAllOrders' : ActorMethod<[], Array<Order>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCardType' : ActorMethod<[bigint], [] | [CardType]>,
+  'getClientOrder' : ActorMethod<[bigint], [] | [ClientOrder]>,
   'getCustomer' : ActorMethod<[bigint], [] | [Customer]>,
   'getDashboardStats' : ActorMethod<[], DashboardStats>,
+  'getMyClientOrders' : ActorMethod<[], Array<ClientOrder>>,
   'getOrder' : ActorMethod<[bigint], [] | [Order]>,
   'getOrdersByCustomerId' : ActorMethod<[bigint], Array<Order>>,
   'getOrdersByStatus' : ActorMethod<[string], Array<Order>>,
+  'getStudentRecordsByOrder' : ActorMethod<[bigint], Array<StudentRecord>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
-  'initializeSeedData' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'removeClientOrderDesign' : ActorMethod<[bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'setClientOrderEditPermission' : ActorMethod<[bigint, boolean], undefined>,
   'updateCardType' : ActorMethod<[bigint, CardType], undefined>,
+  'updateClientOrder' : ActorMethod<[bigint, ClientOrder], undefined>,
+  'updateClientOrderStatus' : ActorMethod<[bigint, OrderStatus], undefined>,
   'updateCustomer' : ActorMethod<[bigint, Customer], undefined>,
   'updateOrder' : ActorMethod<[bigint, Order], undefined>,
+  'uploadClientOrderDesign' : ActorMethod<[bigint, string], undefined>,
+  'uploadFile' : ActorMethod<[string, ExternalBlob], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

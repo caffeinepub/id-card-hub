@@ -3,12 +3,22 @@ import { Toaster } from "@/components/ui/sonner";
 import { useEffect, useRef, useState } from "react";
 import { AppSidebar } from "./components/AppSidebar";
 import { useActor } from "./hooks/useActor";
+import { useInternetIdentity } from "./hooks/useInternetIdentity";
+import { useIsAdmin } from "./hooks/useQueries";
+import { AdminClientOrdersPage } from "./pages/AdminClientOrdersPage";
 import { CardTypesPage } from "./pages/CardTypesPage";
 import { CustomersPage } from "./pages/CustomersPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { OrdersPage } from "./pages/OrdersPage";
+import { ClientPortal } from "./pages/client/ClientPortal";
+import { LandingPage } from "./pages/client/LandingPage";
 
-type Page = "dashboard" | "orders" | "customers" | "card-types";
+type AdminPage =
+  | "dashboard"
+  | "orders"
+  | "customers"
+  | "card-types"
+  | "client-orders";
 
 function LoadingScreen() {
   return (
@@ -31,24 +41,21 @@ function LoadingScreen() {
   );
 }
 
-function AppContent() {
+function AdminApp() {
   const { actor, isFetching } = useActor();
-  const [currentPage, setCurrentPage] = useState<Page>("dashboard");
+  const [currentPage, setCurrentPage] = useState<AdminPage>("dashboard");
   const seedInitialized = useRef(false);
 
   // Initialize seed data once on first load
   useEffect(() => {
     if (actor && !isFetching && !seedInitialized.current) {
       seedInitialized.current = true;
-      actor.initializeSeedData().catch(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (actor as any).initializeSeedData?.().catch(() => {
         // Ignore errors — seed may already be initialized
       });
     }
   }, [actor, isFetching]);
-
-  if (isFetching) {
-    return <LoadingScreen />;
-  }
 
   const renderPage = () => {
     switch (currentPage) {
@@ -60,6 +67,8 @@ function AppContent() {
         return <CustomersPage />;
       case "card-types":
         return <CardTypesPage />;
+      case "client-orders":
+        return <AdminClientOrdersPage />;
       default:
         return <DashboardPage />;
     }
@@ -69,7 +78,8 @@ function AppContent() {
     <div className="flex h-screen bg-background">
       <AppSidebar
         currentPage={currentPage}
-        onNavigate={(page) => setCurrentPage(page as Page)}
+        onNavigate={(page) => setCurrentPage(page as AdminPage)}
+        showClientOrders
       />
       {/* Main content area */}
       <main className="flex-1 lg:ml-64 overflow-y-auto">
@@ -93,6 +103,45 @@ function AppContent() {
       </main>
       <Toaster richColors position="top-right" />
     </div>
+  );
+}
+
+function AppContent() {
+  const { isFetching: actorFetching } = useActor();
+  const { identity, isInitializing } = useInternetIdentity();
+  const { data: isAdmin, isLoading: adminCheckLoading } = useIsAdmin();
+
+  // Show loading while actor or identity is initializing
+  if (actorFetching || isInitializing) {
+    return <LoadingScreen />;
+  }
+
+  // Not logged in — show landing page
+  if (!identity) {
+    return (
+      <>
+        <LandingPage />
+        <Toaster richColors position="top-right" />
+      </>
+    );
+  }
+
+  // Still checking admin status
+  if (adminCheckLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Admin
+  if (isAdmin) {
+    return <AdminApp />;
+  }
+
+  // Client (regular user)
+  return (
+    <>
+      <ClientPortal />
+      <Toaster richColors position="top-right" />
+    </>
   );
 }
 

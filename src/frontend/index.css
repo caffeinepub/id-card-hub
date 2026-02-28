@@ -73,6 +73,20 @@
     --status-cancelled: 0.58 0.22 25;
     --status-cancelled-bg: 0.96 0.04 25;
 
+    /* Client order status colors */
+    --status-submitted: 0.55 0.18 240;
+    --status-submitted-bg: 0.94 0.06 240;
+    --status-inReview: 0.72 0.17 82;
+    --status-inReview-bg: 0.97 0.05 85;
+    --status-designing: 0.55 0.18 290;
+    --status-designing-bg: 0.95 0.05 290;
+    --status-printing: 0.62 0.16 46;
+    --status-printing-bg: 0.96 0.05 46;
+    --status-dispatched: 0.60 0.14 195;
+    --status-dispatched-bg: 0.94 0.05 195;
+    --status-client-delivered: 0.55 0.15 155;
+    --status-client-delivered-bg: 0.93 0.06 155;
+
     /* Chart colors */
     --chart-1: 0.58 0.14 240;
     --chart-2: 0.58 0.15 155;
@@ -138,5 +152,61 @@
 
   .sidebar-glow {
     box-shadow: inset -1px 0 0 oklch(var(--sidebar-border));
+  }
+
+  /* Client portal status badges */
+  .status-submitted {
+    background-color: oklch(var(--status-submitted-bg));
+    color: oklch(var(--status-submitted));
+    border-color: oklch(var(--status-submitted) / 0.3);
+  }
+  .status-inReview {
+    background-color: oklch(var(--status-inReview-bg));
+    color: oklch(var(--status-inReview));
+    border-color: oklch(var(--status-inReview) / 0.3);
+  }
+  .status-designing {
+    background-color: oklch(var(--status-designing-bg));
+    color: oklch(var(--status-designing));
+    border-color: oklch(var(--status-designing) / 0.3);
+  }
+  .status-printing {
+    background-color: oklch(var(--status-printing-bg));
+    color: oklch(var(--status-printing));
+    border-color: oklch(var(--status-printing) / 0.3);
+  }
+  .status-dispatched {
+    background-color: oklch(var(--status-dispatched-bg));
+    color: oklch(var(--status-dispatched));
+    border-color: oklch(var(--status-dispatched) / 0.3);
+  }
+  .status-client-delivered {
+    background-color: oklch(var(--status-client-delivered-bg));
+    color: oklch(var(--status-client-delivered));
+    border-color: oklch(var(--status-client-delivered) / 0.3);
+  }
+
+  /* Portal landing hero gradient */
+  .portal-hero-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(0.19 0.05 265) 0%,
+      oklch(0.24 0.07 280) 50%,
+      oklch(0.19 0.06 250) 100%
+    );
+  }
+
+  /* Progress step active/completed */
+  .step-active {
+    background-color: oklch(var(--primary));
+    color: oklch(var(--primary-foreground));
+  }
+  .step-completed {
+    background-color: oklch(var(--status-client-delivered));
+    color: #fff;
+  }
+  .step-inactive {
+    background-color: oklch(var(--muted));
+    color: oklch(var(--muted-foreground));
   }
 }

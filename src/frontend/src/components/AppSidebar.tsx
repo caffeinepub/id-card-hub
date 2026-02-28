@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import {
+  Building2,
   ChevronRight,
   ClipboardList,
   CreditCard,
@@ -20,7 +22,7 @@ interface NavItem {
   href: string;
 }
 
-const navItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
   {
     icon: <LayoutDashboard className="h-5 w-5" />,
     label: "Dashboard",
@@ -43,16 +45,37 @@ const navItems: NavItem[] = [
   },
 ];
 
+const clientOrdersItem: NavItem = {
+  icon: <Building2 className="h-5 w-5" />,
+  label: "Client Orders",
+  href: "#client-orders",
+};
+
 interface AppSidebarProps {
   currentPage: string;
   onNavigate: (page: string) => void;
+  showClientOrders?: boolean;
 }
 
-export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
+export function AppSidebar({
+  currentPage,
+  onNavigate,
+  showClientOrders = false,
+}: AppSidebarProps) {
   const { identity, login, clear, isLoggingIn } = useInternetIdentity();
+  const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isLoggedIn = !!identity;
+
+  const navItems = showClientOrders
+    ? [...baseNavItems, clientOrdersItem]
+    : baseNavItems;
+
+  const handleLogout = async () => {
+    await clear();
+    queryClient.clear();
+  };
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
@@ -129,7 +152,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-sidebar-foreground truncate">
-                  Authenticated
+                  Admin
                 </p>
                 <p className="text-xs text-sidebar-foreground/40 truncate">
                   {identity?.getPrincipal().toString().slice(0, 12)}...
@@ -140,7 +163,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
               variant="ghost"
               size="sm"
               className="w-full justify-start gap-2 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-              onClick={clear}
+              onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
               Sign out
