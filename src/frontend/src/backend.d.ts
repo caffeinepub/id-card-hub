@@ -20,15 +20,20 @@ export interface ClientOrder {
     deliveryAddress: string;
     cardLayoutChoice: string;
     institutionName: string;
+    institutionType: string;
+    city: string;
     createdAt: bigint;
     contactPerson: string;
     designImageKey?: string;
     canEdit: boolean;
     schoolLogoKey?: string;
+    website: string;
     clientPrincipal: Principal;
     updatedAt: bigint;
+    state: string;
     colorPreferences: string;
     contactEmail: string;
+    pinCode: string;
     cardQuantity: bigint;
     contactPhone: string;
 }
@@ -69,11 +74,17 @@ export interface Order {
 }
 export interface StudentRecord {
     id: bigint;
+    parentsContactNumber: string;
+    dateOfBirth: string;
     role: PersonRole;
     photoKey?: string;
     personName: string;
+    fathersName: string;
     orderId: bigint;
+    bloodGroup: string;
+    address: string;
     department: string;
+    classGrade: string;
     uploadedAt: bigint;
 }
 export interface UserProfile {
@@ -135,6 +146,7 @@ export interface backendInterface {
     updateClientOrderStatus(id: bigint, status: OrderStatus): Promise<void>;
     updateCustomer(id: bigint, customer: Customer): Promise<void>;
     updateOrder(id: bigint, order: Order): Promise<void>;
+    updateStudentRecord(id: bigint, record: StudentRecord): Promise<void>;
     uploadClientOrderDesign(orderId: bigint, designImageKey: string): Promise<void>;
     uploadFile(id: string, externalBlob: ExternalBlob): Promise<void>;
 }

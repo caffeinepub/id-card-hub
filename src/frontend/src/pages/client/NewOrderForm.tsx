@@ -27,6 +27,49 @@ interface NewOrderFormProps {
   onCancel: () => void;
 }
 
+const INSTITUTION_TYPES = ["School", "College", "University"];
+
+const INDIAN_STATES = [
+  // States
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  // Union Territories
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
+];
+
 export function NewOrderForm({ onSuccess, onCancel }: NewOrderFormProps) {
   const { data: cardTypes = [] } = useAllCardTypes();
   const createOrder = useCreateClientOrder();
@@ -34,6 +77,7 @@ export function NewOrderForm({ onSuccess, onCancel }: NewOrderFormProps) {
   const { identity } = useInternetIdentity();
   const { actor } = useActor();
 
+  // Existing fields
   const [institutionName, setInstitutionName] = useState("");
   const [contactPerson, setContactPerson] = useState("");
   const [contactPhone, setContactPhone] = useState("");
@@ -45,6 +89,13 @@ export function NewOrderForm({ onSuccess, onCancel }: NewOrderFormProps) {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  // New institution fields
+  const [institutionType, setInstitutionType] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [pinCode, setPinCode] = useState("");
+  const [website, setWebsite] = useState("");
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -105,6 +156,12 @@ export function NewOrderForm({ onSuccess, onCancel }: NewOrderFormProps) {
       cardLayoutChoice,
       colorPreferences: colorPreferences.trim(),
       schoolLogoKey,
+      // New fields
+      institutionType: institutionType.trim(),
+      city: city.trim(),
+      state: state.trim(),
+      pinCode: pinCode.trim(),
+      website: website.trim(),
       status: OrderStatus.submitted,
       canEdit: false,
       clientPrincipal: principal,
@@ -165,6 +222,27 @@ export function NewOrderForm({ onSuccess, onCancel }: NewOrderFormProps) {
                   required
                 />
               </div>
+
+              {/* Institution Type */}
+              <div className="space-y-2">
+                <Label>Institution Type</Label>
+                <Select
+                  value={institutionType}
+                  onValueChange={setInstitutionType}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INSTITUTION_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="contact-person">
                   Contact Person <span className="text-destructive">*</span>
@@ -183,7 +261,7 @@ export function NewOrderForm({ onSuccess, onCancel }: NewOrderFormProps) {
                   <Input
                     id="contact-phone"
                     type="tel"
-                    placeholder="+1 555 000 0000"
+                    placeholder="+91 98765 43210"
                     value={contactPhone}
                     onChange={(e) => setContactPhone(e.target.value)}
                   />
@@ -202,6 +280,61 @@ export function NewOrderForm({ onSuccess, onCancel }: NewOrderFormProps) {
                   />
                 </div>
               </div>
+
+              {/* City & State */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    placeholder="e.g. Chennai"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>State</Label>
+                  <Select value={state} onValueChange={setState}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {INDIAN_STATES.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* PIN Code */}
+              <div className="space-y-2">
+                <Label htmlFor="pin-code">PIN Code</Label>
+                <Input
+                  id="pin-code"
+                  placeholder="e.g. 600001"
+                  maxLength={6}
+                  value={pinCode}
+                  onChange={(e) =>
+                    setPinCode(e.target.value.replace(/\D/g, ""))
+                  }
+                />
+              </div>
+
+              {/* Website */}
+              <div className="space-y-2">
+                <Label htmlFor="website">Website / Social Media</Label>
+                <Input
+                  id="website"
+                  type="url"
+                  placeholder="https://www.school.edu"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="delivery-address">
                   Delivery Address <span className="text-destructive">*</span>

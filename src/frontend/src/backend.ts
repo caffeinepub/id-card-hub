@@ -95,15 +95,20 @@ export interface ClientOrder {
     deliveryAddress: string;
     cardLayoutChoice: string;
     institutionName: string;
+    institutionType: string;
+    city: string;
     createdAt: bigint;
     contactPerson: string;
     designImageKey?: string;
     canEdit: boolean;
     schoolLogoKey?: string;
+    website: string;
     clientPrincipal: Principal;
     updatedAt: bigint;
+    state: string;
     colorPreferences: string;
     contactEmail: string;
+    pinCode: string;
     cardQuantity: bigint;
     contactPhone: string;
 }
@@ -151,11 +156,17 @@ export interface Order {
 }
 export interface StudentRecord {
     id: bigint;
+    parentsContactNumber: string;
+    dateOfBirth: string;
     role: PersonRole;
     photoKey?: string;
     personName: string;
+    fathersName: string;
     orderId: bigint;
+    bloodGroup: string;
+    address: string;
     department: string;
+    classGrade: string;
     uploadedAt: bigint;
 }
 export interface UserProfile {
@@ -228,6 +239,7 @@ export interface backendInterface {
     updateClientOrderStatus(id: bigint, status: OrderStatus): Promise<void>;
     updateCustomer(id: bigint, customer: Customer): Promise<void>;
     updateOrder(id: bigint, order: Order): Promise<void>;
+    updateStudentRecord(id: bigint, record: StudentRecord): Promise<void>;
     uploadClientOrderDesign(orderId: bigint, designImageKey: string): Promise<void>;
     uploadFile(id: string, externalBlob: ExternalBlob): Promise<void>;
 }
@@ -864,6 +876,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async updateStudentRecord(arg0: bigint, arg1: StudentRecord): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateStudentRecord(arg0, to_candid_StudentRecord_n8(this._uploadFile, this._downloadFile, arg1));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateStudentRecord(arg0, to_candid_StudentRecord_n8(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
     async uploadClientOrderDesign(arg0: bigint, arg1: string): Promise<void> {
         if (this.processError) {
             try {
@@ -944,15 +970,20 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
     deliveryAddress: string;
     cardLayoutChoice: string;
     institutionName: string;
+    institutionType: string;
+    city: string;
     createdAt: bigint;
     contactPerson: string;
     designImageKey: [] | [string];
     canEdit: boolean;
     schoolLogoKey: [] | [string];
+    website: string;
     clientPrincipal: Principal;
     updatedAt: bigint;
+    state: string;
     colorPreferences: string;
     contactEmail: string;
+    pinCode: string;
     cardQuantity: bigint;
     contactPhone: string;
 }): {
@@ -961,15 +992,20 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
     deliveryAddress: string;
     cardLayoutChoice: string;
     institutionName: string;
+    institutionType: string;
+    city: string;
     createdAt: bigint;
     contactPerson: string;
     designImageKey?: string;
     canEdit: boolean;
     schoolLogoKey?: string;
+    website: string;
     clientPrincipal: Principal;
     updatedAt: bigint;
+    state: string;
     colorPreferences: string;
     contactEmail: string;
+    pinCode: string;
     cardQuantity: bigint;
     contactPhone: string;
 } {
@@ -979,43 +1015,66 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
         deliveryAddress: value.deliveryAddress,
         cardLayoutChoice: value.cardLayoutChoice,
         institutionName: value.institutionName,
+        institutionType: value.institutionType,
+        city: value.city,
         createdAt: value.createdAt,
         contactPerson: value.contactPerson,
         designImageKey: record_opt_to_undefined(from_candid_opt_n24(_uploadFile, _downloadFile, value.designImageKey)),
         canEdit: value.canEdit,
         schoolLogoKey: record_opt_to_undefined(from_candid_opt_n24(_uploadFile, _downloadFile, value.schoolLogoKey)),
+        website: value.website,
         clientPrincipal: value.clientPrincipal,
         updatedAt: value.updatedAt,
+        state: value.state,
         colorPreferences: value.colorPreferences,
         contactEmail: value.contactEmail,
+        pinCode: value.pinCode,
         cardQuantity: value.cardQuantity,
         contactPhone: value.contactPhone
     };
 }
 function from_candid_record_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
+    parentsContactNumber: string;
+    dateOfBirth: string;
     role: _PersonRole;
     photoKey: [] | [string];
     personName: string;
+    fathersName: string;
     orderId: bigint;
+    bloodGroup: string;
+    address: string;
     department: string;
+    classGrade: string;
     uploadedAt: bigint;
 }): {
     id: bigint;
+    parentsContactNumber: string;
+    dateOfBirth: string;
     role: PersonRole;
     photoKey?: string;
     personName: string;
+    fathersName: string;
     orderId: bigint;
+    bloodGroup: string;
+    address: string;
     department: string;
+    classGrade: string;
     uploadedAt: bigint;
 } {
     return {
         id: value.id,
+        parentsContactNumber: value.parentsContactNumber,
+        dateOfBirth: value.dateOfBirth,
         role: from_candid_PersonRole_n38(_uploadFile, _downloadFile, value.role),
         photoKey: record_opt_to_undefined(from_candid_opt_n24(_uploadFile, _downloadFile, value.photoKey)),
         personName: value.personName,
+        fathersName: value.fathersName,
         orderId: value.orderId,
+        bloodGroup: value.bloodGroup,
+        address: value.address,
         department: value.department,
+        classGrade: value.classGrade,
         uploadedAt: value.uploadedAt
     };
 }
@@ -1107,15 +1166,20 @@ function to_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     deliveryAddress: string;
     cardLayoutChoice: string;
     institutionName: string;
+    institutionType: string;
+    city: string;
     createdAt: bigint;
     contactPerson: string;
     designImageKey?: string;
     canEdit: boolean;
     schoolLogoKey?: string;
+    website: string;
     clientPrincipal: Principal;
     updatedAt: bigint;
+    state: string;
     colorPreferences: string;
     contactEmail: string;
+    pinCode: string;
     cardQuantity: bigint;
     contactPhone: string;
 }): {
@@ -1124,15 +1188,20 @@ function to_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     deliveryAddress: string;
     cardLayoutChoice: string;
     institutionName: string;
+    institutionType: string;
+    city: string;
     createdAt: bigint;
     contactPerson: string;
     designImageKey: [] | [string];
     canEdit: boolean;
     schoolLogoKey: [] | [string];
+    website: string;
     clientPrincipal: Principal;
     updatedAt: bigint;
+    state: string;
     colorPreferences: string;
     contactEmail: string;
+    pinCode: string;
     cardQuantity: bigint;
     contactPhone: string;
 } {
@@ -1142,15 +1211,20 @@ function to_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         deliveryAddress: value.deliveryAddress,
         cardLayoutChoice: value.cardLayoutChoice,
         institutionName: value.institutionName,
+        institutionType: value.institutionType,
+        city: value.city,
         createdAt: value.createdAt,
         contactPerson: value.contactPerson,
         designImageKey: value.designImageKey ? candid_some(value.designImageKey) : candid_none(),
         canEdit: value.canEdit,
         schoolLogoKey: value.schoolLogoKey ? candid_some(value.schoolLogoKey) : candid_none(),
+        website: value.website,
         clientPrincipal: value.clientPrincipal,
         updatedAt: value.updatedAt,
+        state: value.state,
         colorPreferences: value.colorPreferences,
         contactEmail: value.contactEmail,
+        pinCode: value.pinCode,
         cardQuantity: value.cardQuantity,
         contactPhone: value.contactPhone
     };
@@ -1166,28 +1240,46 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 }
 function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
+    parentsContactNumber: string;
+    dateOfBirth: string;
     role: PersonRole;
     photoKey?: string;
     personName: string;
+    fathersName: string;
     orderId: bigint;
+    bloodGroup: string;
+    address: string;
     department: string;
+    classGrade: string;
     uploadedAt: bigint;
 }): {
     id: bigint;
+    parentsContactNumber: string;
+    dateOfBirth: string;
     role: _PersonRole;
     photoKey: [] | [string];
     personName: string;
+    fathersName: string;
     orderId: bigint;
+    bloodGroup: string;
+    address: string;
     department: string;
+    classGrade: string;
     uploadedAt: bigint;
 } {
     return {
         id: value.id,
+        parentsContactNumber: value.parentsContactNumber,
+        dateOfBirth: value.dateOfBirth,
         role: to_candid_PersonRole_n10(_uploadFile, _downloadFile, value.role),
         photoKey: value.photoKey ? candid_some(value.photoKey) : candid_none(),
         personName: value.personName,
+        fathersName: value.fathersName,
         orderId: value.orderId,
+        bloodGroup: value.bloodGroup,
+        address: value.address,
         department: value.department,
+        classGrade: value.classGrade,
         uploadedAt: value.uploadedAt
     };
 }

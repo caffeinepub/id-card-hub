@@ -23,15 +23,20 @@ export interface ClientOrder {
   'deliveryAddress' : string,
   'cardLayoutChoice' : string,
   'institutionName' : string,
+  'institutionType' : string,
+  'city' : string,
   'createdAt' : bigint,
   'contactPerson' : string,
   'designImageKey' : [] | [string],
   'canEdit' : boolean,
   'schoolLogoKey' : [] | [string],
+  'website' : string,
   'clientPrincipal' : Principal,
   'updatedAt' : bigint,
+  'state' : string,
   'colorPreferences' : string,
   'contactEmail' : string,
+  'pinCode' : string,
   'cardQuantity' : bigint,
   'contactPhone' : string,
 }
@@ -74,11 +79,17 @@ export type PersonRole = { 'staff' : null } |
   { 'student' : null };
 export interface StudentRecord {
   'id' : bigint,
+  'parentsContactNumber' : string,
+  'dateOfBirth' : string,
   'role' : PersonRole,
   'photoKey' : [] | [string],
   'personName' : string,
+  'fathersName' : string,
   'orderId' : bigint,
+  'bloodGroup' : string,
+  'address' : string,
   'department' : string,
+  'classGrade' : string,
   'uploadedAt' : bigint,
 }
 export interface UserProfile { 'name' : string }
@@ -151,6 +162,7 @@ export interface _SERVICE {
   'updateClientOrderStatus' : ActorMethod<[bigint, OrderStatus], undefined>,
   'updateCustomer' : ActorMethod<[bigint, Customer], undefined>,
   'updateOrder' : ActorMethod<[bigint, Order], undefined>,
+  'updateStudentRecord' : ActorMethod<[bigint, StudentRecord], undefined>,
   'uploadClientOrderDesign' : ActorMethod<[bigint, string], undefined>,
   'uploadFile' : ActorMethod<[string, ExternalBlob], undefined>,
 }

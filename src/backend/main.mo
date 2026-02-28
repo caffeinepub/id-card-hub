@@ -6,16 +6,14 @@ import Int "mo:core/Int";
 import Float "mo:core/Float";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
-import Runtime "mo:core/Runtime";
 import Array "mo:core/Array";
+import Runtime "mo:core/Runtime";
+import Order "mo:core/Order";
 
 import MixinAuthorization "authorization/MixinAuthorization";
-import Order "mo:core/Order";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
-
-
 
 actor {
   type CardType = {
@@ -65,6 +63,11 @@ actor {
     id : Nat;
     clientPrincipal : Principal;
     institutionName : Text;
+    institutionType : Text;
+    city : Text;
+    state : Text;
+    pinCode : Text;
+    website : Text;
     contactPerson : Text;
     contactPhone : Text;
     contactEmail : Text;
@@ -93,6 +96,12 @@ actor {
     id : Nat;
     orderId : Nat;
     personName : Text;
+    fathersName : Text;
+    dateOfBirth : Text;
+    bloodGroup : Text;
+    address : Text;
+    parentsContactNumber : Text;
+    classGrade : Text;
     role : PersonRole;
     department : Text;
     photoKey : ?Text;
@@ -118,7 +127,6 @@ actor {
 
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
-
   include MixinStorage();
 
   let cardTypes = Map.empty<Nat, CardType>();
@@ -130,8 +138,6 @@ actor {
   let customers = Map.empty<Nat, Customer>();
   var nextCustomerId = 1;
 
-  var files = Map.empty<Text, Storage.ExternalBlob>();
-
   let clientOrders = Map.empty<Nat, ClientOrder>();
   var nextClientOrderId = 1;
 
@@ -139,6 +145,8 @@ actor {
   var nextStudentRecordId = 1;
 
   let userProfiles = Map.empty<Principal, UserProfile>();
+
+  var files = Map.empty<Text, Storage.ExternalBlob>();
 
   public shared ({ caller }) func uploadClientOrderDesign(orderId : Nat, designImageKey : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
@@ -584,6 +592,35 @@ actor {
     addedCount;
   };
 
+  public shared ({ caller }) func updateStudentRecord(id : Nat, record : StudentRecord) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can update student records");
+    };
+
+    let existingRecord = switch (studentRecords.get(id)) {
+      case (null) { Runtime.trap("Student record not found") };
+      case (?record) { record };
+    };
+
+    let order = switch (clientOrders.get(existingRecord.orderId)) {
+      case (null) { Runtime.trap("Client order not found") };
+      case (?o) { o };
+    };
+
+    if (order.clientPrincipal != caller and not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: You do not have access to this order");
+    };
+
+    let updatedRecord = {
+      record with
+      id = existingRecord.id;
+      orderId = existingRecord.orderId;
+      uploadedAt = existingRecord.uploadedAt;
+    };
+
+    studentRecords.add(id, updatedRecord);
+  };
+
   public query ({ caller }) func getStudentRecordsByOrder(orderId : Nat) : async [StudentRecord] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only logged-in users can view student records");
@@ -633,6 +670,9 @@ actor {
   };
 
   public shared ({ caller }) func deleteFile(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete files");
+    };
     switch (files.get(id)) {
       case (null) { Runtime.trap("File with id does not exist: " # id) };
       case (_) {
@@ -642,6 +682,9 @@ actor {
   };
 
   public shared ({ caller }) func getAllFiles() : async [(Text, Storage.ExternalBlob)] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admin can view all files");
+    };
     files.toArray();
   };
 };

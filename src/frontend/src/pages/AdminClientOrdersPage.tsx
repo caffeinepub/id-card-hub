@@ -138,6 +138,41 @@ function OrderDetailPanel({
 
         {/* Details grid */}
         <div className="grid grid-cols-2 gap-3 text-sm">
+          {/* Institution type badge */}
+          {order.institutionType && (
+            <div className="col-span-2 flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs capitalize">
+                {order.institutionType}
+              </Badge>
+              {order.city || order.state ? (
+                <span className="text-xs text-muted-foreground">
+                  {[order.city, order.state, order.pinCode]
+                    .filter(Boolean)
+                    .join(", ")}
+                </span>
+              ) : null}
+            </div>
+          )}
+          {order.website && (
+            <div className="col-span-2 flex items-start gap-2">
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs text-muted-foreground">Website</p>
+                <a
+                  href={
+                    order.website.startsWith("http")
+                      ? order.website
+                      : `https://${order.website}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-primary hover:underline truncate block max-w-[220px]"
+                >
+                  {order.website}
+                </a>
+              </div>
+            </div>
+          )}
           <div className="flex items-start gap-2">
             <Users className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
             <div>
@@ -376,9 +411,9 @@ function OrderDetailPanel({
             {records.map((record) => (
               <div
                 key={record.id.toString()}
-                className="flex items-center gap-3 p-2.5 bg-card rounded-lg border border-border/40"
+                className="flex items-start gap-3 p-2.5 bg-card rounded-lg border border-border/40"
               >
-                <Avatar className="h-8 w-8 shrink-0">
+                <Avatar className="h-8 w-8 shrink-0 mt-0.5">
                   {record.photoKey && (
                     <AvatarImage
                       src={ExternalBlob.fromURL(record.photoKey).getDirectURL()}
@@ -395,24 +430,58 @@ function OrderDetailPanel({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {record.personName}
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-medium truncate">
+                      {record.personName}
+                    </p>
+                    <Badge
+                      variant="secondary"
+                      className={`text-xs shrink-0 ${
+                        record.role === PersonRole.staff
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
+                      {record.role === PersonRole.staff ? "Staff" : "Student"}
+                    </Badge>
+                    {record.bloodGroup && (
+                      <Badge variant="outline" className="text-xs shrink-0">
+                        {record.bloodGroup}
+                      </Badge>
+                    )}
+                    {record.classGrade && (
+                      <Badge
+                        variant="secondary"
+                        className="text-xs shrink-0 bg-green-100 text-green-700"
+                      >
+                        {record.classGrade}
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground truncate">
-                    {record.department ||
-                      (record.role === PersonRole.staff ? "Staff" : "Student")}
+                    {record.fathersName ? `S/O ${record.fathersName}` : ""}
+                    {record.department
+                      ? record.fathersName
+                        ? ` • ${record.department}`
+                        : record.department
+                      : ""}
                   </p>
+                  {(record.dateOfBirth || record.parentsContactNumber) && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {record.dateOfBirth ? `DOB: ${record.dateOfBirth}` : ""}
+                      {record.parentsContactNumber
+                        ? record.dateOfBirth
+                          ? ` • ${record.parentsContactNumber}`
+                          : record.parentsContactNumber
+                        : ""}
+                    </p>
+                  )}
+                  {record.address && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {record.address}
+                    </p>
+                  )}
                 </div>
-                <Badge
-                  variant="secondary"
-                  className={`text-xs shrink-0 ${
-                    record.role === PersonRole.staff
-                      ? "bg-purple-100 text-purple-700"
-                      : "bg-blue-100 text-blue-700"
-                  }`}
-                >
-                  {record.role === PersonRole.staff ? "Staff" : "Student"}
-                </Badge>
               </div>
             ))}
           </div>

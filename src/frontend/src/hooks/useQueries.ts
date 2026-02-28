@@ -528,6 +528,29 @@ export function useDeleteStudentRecord() {
   });
 }
 
+export function useUpdateStudentRecord() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      record,
+    }: { id: bigint; record: StudentRecord; orderId: bigint }) => {
+      if (!actor) throw new Error("No actor");
+      return actor.updateStudentRecord(id, record);
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({
+        queryKey: ["studentRecords", vars.orderId.toString()],
+      });
+      toast.success("Record updated");
+    },
+    onError: () => {
+      toast.error("Failed to update record");
+    },
+  });
+}
+
 // ─── Client Order Design ──────────────────────────────────────────────────────
 export function useUploadClientOrderDesign() {
   const { actor } = useActor();

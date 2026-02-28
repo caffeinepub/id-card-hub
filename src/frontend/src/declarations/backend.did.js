@@ -25,11 +25,17 @@ export const PersonRole = IDL.Variant({
 });
 export const StudentRecord = IDL.Record({
   'id' : IDL.Nat,
+  'parentsContactNumber' : IDL.Text,
+  'dateOfBirth' : IDL.Text,
   'role' : PersonRole,
   'photoKey' : IDL.Opt(IDL.Text),
   'personName' : IDL.Text,
+  'fathersName' : IDL.Text,
   'orderId' : IDL.Nat,
+  'bloodGroup' : IDL.Text,
+  'address' : IDL.Text,
   'department' : IDL.Text,
+  'classGrade' : IDL.Text,
   'uploadedAt' : IDL.Int,
 });
 export const UserRole = IDL.Variant({
@@ -58,15 +64,20 @@ export const ClientOrder = IDL.Record({
   'deliveryAddress' : IDL.Text,
   'cardLayoutChoice' : IDL.Text,
   'institutionName' : IDL.Text,
+  'institutionType' : IDL.Text,
+  'city' : IDL.Text,
   'createdAt' : IDL.Int,
   'contactPerson' : IDL.Text,
   'designImageKey' : IDL.Opt(IDL.Text),
   'canEdit' : IDL.Bool,
   'schoolLogoKey' : IDL.Opt(IDL.Text),
+  'website' : IDL.Text,
   'clientPrincipal' : IDL.Principal,
   'updatedAt' : IDL.Int,
+  'state' : IDL.Text,
   'colorPreferences' : IDL.Text,
   'contactEmail' : IDL.Text,
+  'pinCode' : IDL.Text,
   'cardQuantity' : IDL.Nat,
   'contactPhone' : IDL.Text,
 });
@@ -183,6 +194,7 @@ export const idlService = IDL.Service({
   'updateClientOrderStatus' : IDL.Func([IDL.Nat, OrderStatus], [], []),
   'updateCustomer' : IDL.Func([IDL.Nat, Customer], [], []),
   'updateOrder' : IDL.Func([IDL.Nat, Order], [], []),
+  'updateStudentRecord' : IDL.Func([IDL.Nat, StudentRecord], [], []),
   'uploadClientOrderDesign' : IDL.Func([IDL.Nat, IDL.Text], [], []),
   'uploadFile' : IDL.Func([IDL.Text, ExternalBlob], [], []),
 });
@@ -204,11 +216,17 @@ export const idlFactory = ({ IDL }) => {
   const PersonRole = IDL.Variant({ 'staff' : IDL.Null, 'student' : IDL.Null });
   const StudentRecord = IDL.Record({
     'id' : IDL.Nat,
+    'parentsContactNumber' : IDL.Text,
+    'dateOfBirth' : IDL.Text,
     'role' : PersonRole,
     'photoKey' : IDL.Opt(IDL.Text),
     'personName' : IDL.Text,
+    'fathersName' : IDL.Text,
     'orderId' : IDL.Nat,
+    'bloodGroup' : IDL.Text,
+    'address' : IDL.Text,
     'department' : IDL.Text,
+    'classGrade' : IDL.Text,
     'uploadedAt' : IDL.Int,
   });
   const UserRole = IDL.Variant({
@@ -237,15 +255,20 @@ export const idlFactory = ({ IDL }) => {
     'deliveryAddress' : IDL.Text,
     'cardLayoutChoice' : IDL.Text,
     'institutionName' : IDL.Text,
+    'institutionType' : IDL.Text,
+    'city' : IDL.Text,
     'createdAt' : IDL.Int,
     'contactPerson' : IDL.Text,
     'designImageKey' : IDL.Opt(IDL.Text),
     'canEdit' : IDL.Bool,
     'schoolLogoKey' : IDL.Opt(IDL.Text),
+    'website' : IDL.Text,
     'clientPrincipal' : IDL.Principal,
     'updatedAt' : IDL.Int,
+    'state' : IDL.Text,
     'colorPreferences' : IDL.Text,
     'contactEmail' : IDL.Text,
+    'pinCode' : IDL.Text,
     'cardQuantity' : IDL.Nat,
     'contactPhone' : IDL.Text,
   });
@@ -362,6 +385,7 @@ export const idlFactory = ({ IDL }) => {
     'updateClientOrderStatus' : IDL.Func([IDL.Nat, OrderStatus], [], []),
     'updateCustomer' : IDL.Func([IDL.Nat, Customer], [], []),
     'updateOrder' : IDL.Func([IDL.Nat, Order], [], []),
+    'updateStudentRecord' : IDL.Func([IDL.Nat, StudentRecord], [], []),
     'uploadClientOrderDesign' : IDL.Func([IDL.Nat, IDL.Text], [], []),
     'uploadFile' : IDL.Func([IDL.Text, ExternalBlob], [], []),
   });

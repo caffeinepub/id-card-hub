@@ -356,6 +356,11 @@ export function OrderDetailPage({
                     Institution
                   </p>
                   <p className="text-sm font-medium">{order.institutionName}</p>
+                  {order.institutionType && (
+                    <Badge variant="secondary" className="text-xs mt-1">
+                      {order.institutionType}
+                    </Badge>
+                  )}
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -385,6 +390,43 @@ export function OrderDetailPage({
                   <p className="text-sm font-medium">{order.contactEmail}</p>
                 </div>
               </div>
+              {(order.city || order.state || order.pinCode) && (
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">
+                      City / State / PIN
+                    </p>
+                    <p className="text-sm font-medium">
+                      {[order.city, order.state, order.pinCode]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {order.website && (
+                <div className="flex items-start gap-3">
+                  <ExternalLink className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">
+                      Website
+                    </p>
+                    <a
+                      href={
+                        order.website.startsWith("http")
+                          ? order.website
+                          : `https://${order.website}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      {order.website}
+                    </a>
+                  </div>
+                </div>
+              )}
               <div className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                 <div>
@@ -497,9 +539,9 @@ export function OrderDetailPage({
               {records.map((record) => (
                 <div
                   key={record.id.toString()}
-                  className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/40"
+                  className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border/40"
                 >
-                  <Avatar className="h-9 w-9 shrink-0">
+                  <Avatar className="h-9 w-9 shrink-0 mt-0.5">
                     {record.photoKey && (
                       <AvatarImage
                         src={ExternalBlob.fromURL(
@@ -518,22 +560,56 @@ export function OrderDetailPage({
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {record.personName}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {record.department ||
-                        (record.role === PersonRole.staff
-                          ? "Staff"
-                          : "Student")}
-                    </p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-sm font-medium truncate">
+                        {record.personName}
+                      </p>
+                      <Badge
+                        variant="secondary"
+                        className={`text-xs shrink-0 ${record.role === PersonRole.staff ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}
+                      >
+                        {record.role === PersonRole.staff ? "Staff" : "Student"}
+                      </Badge>
+                      {record.bloodGroup && (
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          {record.bloodGroup}
+                        </Badge>
+                      )}
+                    </div>
+                    {record.classGrade && (
+                      <Badge
+                        variant="secondary"
+                        className="text-xs mt-1 bg-green-100 text-green-700"
+                      >
+                        {record.classGrade}
+                      </Badge>
+                    )}
+                    {record.fathersName && (
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">
+                        S/O {record.fathersName}
+                      </p>
+                    )}
+                    {record.department && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {record.department}
+                      </p>
+                    )}
+                    {record.dateOfBirth && (
+                      <p className="text-xs text-muted-foreground">
+                        DOB: {record.dateOfBirth}
+                      </p>
+                    )}
+                    {record.parentsContactNumber && (
+                      <p className="text-xs text-muted-foreground">
+                        Parent: {record.parentsContactNumber}
+                      </p>
+                    )}
+                    {record.address && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {record.address}
+                      </p>
+                    )}
                   </div>
-                  <Badge
-                    variant="secondary"
-                    className={`text-xs shrink-0 ${record.role === PersonRole.staff ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}
-                  >
-                    {record.role === PersonRole.staff ? "Staff" : "Student"}
-                  </Badge>
                 </div>
               ))}
             </div>
